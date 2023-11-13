@@ -38,8 +38,8 @@ public class TestStrictBankAccount {
     // 3. Perform a deposit of 100€, compute the management fees, and check that the balance is correctly reduced.
     @Test
     public void testManagementFees() {
-        bankAccount.deposit(mRossi.getUserID(),100.0);
-        final double expectedBalance = INITIAL_AMOUNT + 100.0 - StrictBankAccount.MANAGEMENT_FEE - ( bankAccount.getTransactionsCount() * StrictBankAccount.TRANSACTION_FEE ) ;
+        bankAccount.deposit(mRossi.getUserID(),INITIAL_AMOUNT);
+        final double expectedBalance = INITIAL_AMOUNT + INITIAL_AMOUNT - StrictBankAccount.MANAGEMENT_FEE - ( bankAccount.getTransactionsCount() * StrictBankAccount.TRANSACTION_FEE ) ;
         bankAccount.chargeManagementFees(mRossi.getUserID());
         Assertions.assertEquals(expectedBalance, bankAccount.getBalance());
     }
@@ -47,15 +47,23 @@ public class TestStrictBankAccount {
     // 4. Test the withdraw of a negative value
     @Test
     public void testNegativeWithdraw() {
-        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, ()-> {bankAccount.withdraw(mRossi.getUserID(),-1.0);});
-        assertEquals(thrown.getMessage(),"Cannot withdraw a negative amount");
+        try {
+            bankAccount.withdraw(mRossi.getUserID(),-INITIAL_AMOUNT);
+            Assertions.fail();
+        } catch (IllegalArgumentException e) {
+            Assertions.assertEquals("Cannot withdraw a negative amount", e.getMessage());
+        }
     }
 
     // 5. Test withdrawing more money than it is in the account
     @Test
     public void testWithdrawingTooMuch() {
-        var illegalAmount = bankAccount.getBalance()+1;
-        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, ()-> {bankAccount.withdraw(mRossi.getUserID(),illegalAmount);});
-        assertEquals(thrown.getMessage(),"Insufficient balance");
+        try {
+            var illegalAmount = bankAccount.getBalance()+INITIAL_AMOUNT;
+            bankAccount.withdraw(mRossi.getUserID(),illegalAmount);
+            Assertions.fail();
+        } catch (IllegalArgumentException e) {
+            Assertions.assertEquals("Insufficient balance", e.getMessage());
+        }
     }
 }
